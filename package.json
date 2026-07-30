@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm install --prefix pxpipe && npm run build --prefix pxpipe",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",
