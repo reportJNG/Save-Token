@@ -16,5 +16,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // Scope to this app's own tests — /pxpipe is a vendored dependency with its own
+    // vitest.config.ts and test suite, not part of this project's test surface.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 })

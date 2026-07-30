@@ -4,21 +4,19 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from './ThemeSwitcher'
 import { useLayoutStore } from '@/stores/layoutStore'
-import { useLayoutPlan } from '@/hooks/useLayoutPlan'
+import { useTextStats } from '@/hooks/useTextStats'
 import { useExportStore } from '@/stores/exportStore'
+import { MAX_CHARACTERS } from '@/core/renderer'
 
-const MAX_CHARACTERS = 2_000_000
-const IMAGE_FORMAT = 'png'
-const IMAGE_QUALITY = 0.92
 const numberFormat = new Intl.NumberFormat('en-US')
 
 export function InputScreen({ onGenerated }: { onGenerated: () => void }) {
   const text = useLayoutStore((state) => state.text)
   const setText = useLayoutStore((state) => state.setText)
-  const plan = useLayoutPlan()
+  const stats = useTextStats()
   const status = useExportStore((state) => state.status)
   const error = useExportStore((state) => state.error)
-  const renderAll = useExportStore((state) => state.renderAll)
+  const generate = useExportStore((state) => state.generate)
 
   const isTooLong = text.length > MAX_CHARACTERS
   const isRendering = status === 'rendering'
@@ -30,7 +28,7 @@ export function InputScreen({ onGenerated }: { onGenerated: () => void }) {
 
   const handleGenerate = () => {
     if (!canGenerate) return
-    renderAll(plan.pages, IMAGE_FORMAT, IMAGE_QUALITY, text)
+    generate(text)
   }
 
   return (
@@ -46,7 +44,7 @@ export function InputScreen({ onGenerated }: { onGenerated: () => void }) {
             _
           </span>
         </h1>
-        <p className="text-sm text-muted-foreground">Paste your text — sizing is calculated automatically.</p>
+        <p className="text-sm text-muted-foreground">Paste your text — pxpipe handles the rest.</p>
       </div>
 
       <div className="w-full max-w-xl">
@@ -76,7 +74,7 @@ export function InputScreen({ onGenerated }: { onGenerated: () => void }) {
 
         <div className="mt-2 flex items-center justify-between text-xs">
           <span className={isTooLong ? 'font-medium text-destructive' : 'text-muted-foreground'}>
-            {isTooLong ? 'Over the limit — trim it down to generate.' : ' '}
+            {isTooLong ? 'Over the limit — trim it down to generate.' : ' '}
           </span>
           <span
             className={`font-mono tabular-nums ${isTooLong ? 'font-medium text-destructive' : 'text-muted-foreground'}`}
@@ -84,6 +82,15 @@ export function InputScreen({ onGenerated }: { onGenerated: () => void }) {
             {numberFormat.format(text.length)} / {numberFormat.format(MAX_CHARACTERS)}
           </span>
         </div>
+
+        {text.length > 0 && (
+          <div className="mt-1 flex items-center justify-between font-mono text-xs tabular-nums text-muted-foreground">
+            <span>
+              {numberFormat.format(stats.wordCount)} words · {numberFormat.format(stats.lineCount)} lines
+            </span>
+            <span>~{numberFormat.format(stats.textTokens)} text tokens</span>
+          </div>
+        )}
       </div>
 
       <Button size="lg" className="w-full max-w-xl rounded-xl" disabled={!canGenerate} onClick={handleGenerate}>

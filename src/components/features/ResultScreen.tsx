@@ -1,27 +1,27 @@
 import { useState } from 'react'
-import { Copy, Download, Home, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Copy, Download, Home, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeSwitcher } from './ThemeSwitcher'
 import { useExportStore } from '@/stores/exportStore'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { downloadBlob, copyImageToClipboard } from '@/lib/export'
-import { pageFileName } from '@/lib/canvas/exportImage'
+
+const FILE_NAME = 'text-image.png'
 
 type Feedback = { type: 'success' | 'error'; message: string }
+
+const numberFormat = new Intl.NumberFormat('en-US')
 
 function messageFor(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback
 }
 
 export function ResultScreen({ onReset }: { onReset: () => void }) {
-  const renderedPages = useExportStore((state) => state.renderedPages)
+  const result = useExportStore((state) => state.result)
+  const previewUrl = useExportStore((state) => state.previewUrl)
   const resetExport = useExportStore((state) => state.reset)
   const clearText = useLayoutStore((state) => state.clear)
-  const [pageIndex, setPageIndex] = useState(0)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
-
-  const pageCount = renderedPages.length
-  const image = renderedPages[Math.min(pageIndex, Math.max(0, pageCount - 1))]
 
   const showFeedback = (next: Feedback) => {
     setFeedback(next)
@@ -29,9 +29,9 @@ export function ResultScreen({ onReset }: { onReset: () => void }) {
   }
 
   const handleCopy = async () => {
-    if (!image) return
+    if (!result) return
     try {
-      await copyImageToClipboard(image.blob)
+      await copyImageToClipboard(result.png)
       showFeedback({ type: 'success', message: 'Copied image' })
     } catch (error) {
       showFeedback({ type: 'error', message: messageFor(error, "Couldn't copy the image") })
@@ -39,8 +39,8 @@ export function ResultScreen({ onReset }: { onReset: () => void }) {
   }
 
   const handleDownload = () => {
-    if (!image) return
-    downloadBlob(image.blob, pageFileName(image.index, pageCount, 'png'))
+    if (!result) return
+    downloadBlob(result.png, FILE_NAME)
   }
 
   const handleReset = () => {
@@ -49,7 +49,9 @@ export function ResultScreen({ onReset }: { onReset: () => void }) {
     onReset()
   }
 
-  if (!image) return null
+  if (!result || !previewUrl) return null
+
+  const { statistics } = result
 
   return (
     <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 flex min-h-[90vh] w-full flex-col items-center justify-center gap-6 py-10">
@@ -59,37 +61,23 @@ export function ResultScreen({ onReset }: { onReset: () => void }) {
 
       <div className="flex max-w-full justify-center rounded-2xl border border-border bg-secondary/30 p-4">
         <img
-          src={image.url}
-          alt={`Generated image ${pageIndex + 1}`}
+          src={previewUrl}
+          alt="Generated image"
           className="max-h-[520px] max-w-full rounded-lg object-contain shadow-lg"
         />
       </div>
 
-      {pageCount > 1 && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Previous page"
-            onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
-            disabled={pageIndex === 0}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span>
-            Page {pageIndex + 1} / {pageCount}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Next page"
-            onClick={() => setPageIndex((i) => Math.min(pageCount - 1, i + 1))}
-            disabled={pageIndex === pageCount - 1}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-mono text-xs tabular-nums text-muted-foreground">
+        <span>
+          {result.width}×{result.height}px
+        </span>
+        <span>~{numberFormat.format(statistics.visionTokens)} image tokens</span>
+        <span className={statistics.percentSaved >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}>
+          {statistics.percentSaved >= 0 ? '−' : '+'}
+          {numberFormat.format(Math.abs(Math.round(statistics.percentSaved)))}% vs. text tokens
+        </span>
+        <span>{Math.round(result.renderTime)}ms</span>
+      </div>
 
       <div className="flex items-center gap-4">
         <Button

@@ -1,0 +1,37 @@
+{
+  "name": "pxpipe-proxy",
+  "version": "0.11.1",
+  "description": "Vendored copy of pxpipe's core text-to-PNG renderer, trimmed to only what save-tokens needs to build dist/core/library.js. Full project: https://github.com/teamchong/pxpipe",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./transform": {
+      "types": "./dist/core/library.d.ts",
+      "import": "./dist/core/library.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0",
+    "@types/node": "^24.13.2",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "gpt-tokenizer": "^3.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teamchong/pxpipe.git"
+  },
+  "homepage": "https://github.com/teamchong/pxpipe#readme"
+}
