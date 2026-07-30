@@ -48,4 +48,22 @@ describe('computePagination', () => {
     const result = computePagination(0, baseConfig)
     expect(result.pages).toHaveLength(0)
   })
+
+  it('keeps every page within bounds in "exact" mode even with a prime-count remainder', () => {
+    const maxColumns = Math.floor(2048 / 10)
+    const maxRows = Math.floor(2048 / 20)
+    const pageCapacity = maxColumns * maxRows
+    // A prime remainder would force an unbounded 1×N strip if the last
+    // page used exact factorization directly.
+    const characterCount = pageCapacity + 9973
+
+    const result = computePagination(characterCount, { ...baseConfig, mode: 'exact' })
+
+    expect(result.pageCount).toBe(2)
+    for (const page of result.pages) {
+      expect(page.width).toBeLessThanOrEqual(2048)
+      expect(page.height).toBeLessThanOrEqual(2048)
+    }
+    expect(result.pages[1].characters).toBe(9973)
+  })
 })

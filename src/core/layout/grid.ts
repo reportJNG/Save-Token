@@ -1,37 +1,11 @@
 /**
  * Character placement is purely index-based: character `i` sits at
  * column `i % columns`, row `floor(i / columns)`. This keeps the grid
- * mathematically exact regardless of the text's own line breaks.
+ * mathematically exact regardless of the text's own line breaks —
+ * implemented here as a straight fixed-width string slice per row,
+ * which is equivalent to that index math without materializing a
+ * per-character (column, row) tuple.
  */
-export interface CharacterPosition {
-  char: string
-  column: number
-  row: number
-  index: number
-}
-
-export function columnOf(index: number, columns: number): number {
-  return index % columns
-}
-
-export function rowOf(index: number, columns: number): number {
-  return Math.floor(index / columns)
-}
-
-export function mapCharactersToGrid(text: string, columns: number): CharacterPosition[] {
-  if (columns < 1) throw new Error('columns must be at least 1')
-
-  const positions: CharacterPosition[] = new Array(text.length)
-  for (let index = 0; index < text.length; index++) {
-    positions[index] = {
-      char: text[index],
-      column: columnOf(index, columns),
-      row: rowOf(index, columns),
-      index,
-    }
-  }
-  return positions
-}
 
 /** Slices `text` into fixed-width rows of `columns` characters (last row may be shorter). */
 export function chunkIntoRows(text: string, columns: number): string[] {
@@ -63,7 +37,5 @@ export function normalizeForRendering(char: string): string {
 }
 
 export function rowsForRendering(text: string, columns: number): string[] {
-  return chunkIntoRows(text, columns).map((row) =>
-    Array.from(row, normalizeForRendering).join(''),
-  )
+  return chunkIntoRows(text, columns).map((row) => Array.from(row, normalizeForRendering).join(''))
 }

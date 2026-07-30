@@ -1,60 +1,27 @@
 import { useMemo } from 'react'
 import { useLayoutStore } from '@/stores/layoutStore'
-import { useSettingsStore } from '@/stores/settingsStore'
 import { generateLayoutPlan, type LayoutPlan } from '@/core/layout'
+import { DEFAULT_CELL } from '@/core/layout/characterMetrics'
 import { DEFAULT_RENDER_STYLE } from '@/core/layout/imageGenerator'
+
+/**
+ * Resolution/style are fixed here — always the tightest exact-fit layout, no manual tuning.
+ * The 4096px page cap keeps single-image output for realistic inputs (up to ~83k characters)
+ * while still guarding against turning a pathologically long text into one absurdly large
+ * image that a real vision model would just downscale into unreadable mush anyway.
+ */
+const AUTO_CONFIG = {
+  cell: DEFAULT_CELL,
+  mode: 'exact' as const,
+  targetAspect: 1,
+  maxPageWidth: 4096,
+  maxPageHeight: 4096,
+  style: DEFAULT_RENDER_STYLE,
+}
 
 /** The only place the pure layout engine is invoked from React — never inline it in a component. */
 export function useLayoutPlan(): LayoutPlan {
   const text = useLayoutStore((state) => state.text)
-  const cellWidth = useSettingsStore((state) => state.cellWidth)
-  const cellHeight = useSettingsStore((state) => state.cellHeight)
-  const mode = useSettingsStore((state) => state.mode)
-  const targetAspect = useSettingsStore((state) => state.targetAspect)
-  const maxPageWidth = useSettingsStore((state) => state.maxPageWidth)
-  const maxPageHeight = useSettingsStore((state) => state.maxPageHeight)
-  const fontFamily = useSettingsStore((state) => state.fontFamily)
-  const textColor = useSettingsStore((state) => state.textColor)
-  const backgroundColor = useSettingsStore((state) => state.backgroundColor)
-  const transparentBackground = useSettingsStore((state) => state.transparentBackground)
-  const padding = useSettingsStore((state) => state.padding)
-  const margin = useSettingsStore((state) => state.margin)
-  const cornerRadius = useSettingsStore((state) => state.cornerRadius)
 
-  return useMemo(
-    () =>
-      generateLayoutPlan(text, {
-        cell: { width: cellWidth, height: cellHeight },
-        mode,
-        targetAspect,
-        maxPageWidth,
-        maxPageHeight,
-        style: {
-          ...DEFAULT_RENDER_STYLE,
-          fontFamily,
-          textColor,
-          backgroundColor,
-          transparentBackground,
-          padding,
-          margin,
-          cornerRadius,
-        },
-      }),
-    [
-      text,
-      cellWidth,
-      cellHeight,
-      mode,
-      targetAspect,
-      maxPageWidth,
-      maxPageHeight,
-      fontFamily,
-      textColor,
-      backgroundColor,
-      transparentBackground,
-      padding,
-      margin,
-      cornerRadius,
-    ],
-  )
+  return useMemo(() => generateLayoutPlan(text, AUTO_CONFIG), [text])
 }

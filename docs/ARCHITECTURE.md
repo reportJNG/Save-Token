@@ -45,8 +45,9 @@ to override the automatic choice, but it's opt-in, not required.
 
 `GeneratePanel` covers the whole loop:
 
-1. Text goes into `layoutStore` (validated with Zod via React Hook Form
-   — a length cap is the only rule).
+1. Text goes into `layoutStore` from a plain controlled `<Textarea>` —
+   the only validation rule is a length cap, checked inline, so there's
+   no form-library indirection for a single free-text field.
 2. `useLayoutPlan()` recomputes a `LayoutPlan` live, on every keystroke,
    and a small stats line shows the running token/compression numbers.
 3. The **Generate** button is disabled until there's text and re-disables
@@ -113,6 +114,28 @@ mangling that occurs when a *non-worker* file mixes them. `tsconfig.app.json`
 excludes worker files from its own type-checking pass so the two
 configurations never fight over the same file's meaning of `self`.
 
+## Error handling
+
+Three layers, each catching a different kind of failure:
+
+- **`ErrorBoundary`** (`src/components/ErrorBoundary.tsx`), wrapping the
+  whole app in `main.tsx` — catches unexpected render-time crashes and
+  shows a recovery screen instead of a white page. Text isn't lost on
+  recovery since `layoutStore` lives outside the React tree.
+- **`exportStore.error`** — surfaces failures from the render pipeline
+  itself (a worker error, an unsupported format) directly in
+  `GeneratePanel`, with the actual error message shown, not swallowed.
+- **Per-action try/catch in `ExportDialog`** — every secondary export
+  action (clipboard copy, ZIP build, report export) is wrapped
+  individually so one failing action (e.g. clipboard permission denied)
+  can't silently no-op or throw an unhandled rejection; each shows
+  success/error feedback inline.
+
+`lib/export/clipboard.ts` throws a specific, readable error ("Clipboard
+access is not available...") when `navigator.clipboard` or
+`ClipboardItem` is missing, rather than letting the underlying
+`TypeError` leak through.
+
 ## State ownership
 
 - **`layoutStore`**: exactly one field, the raw text. Kept separate from
@@ -127,8 +150,7 @@ configurations never fight over the same file's meaning of `self`.
 
 ## Adding a new optimizer goal
 
-1. Add the goal to the `OptimizerGoal` union and `OPTIMIZER_GOALS` list
-   in `core/optimizer/optimizer.ts`.
+1. Add the goal to the `OptimizerGoal` union in `core/optimizer/optimizer.ts`.
 2. Add a concrete preset to the `PRESETS` record in the same file.
 3. Call `settingsStore.applyOptimizerPreset(goal)` from wherever it
    should be surfaced (currently only `'balanced'` is used, as the

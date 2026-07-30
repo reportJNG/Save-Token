@@ -3,31 +3,18 @@ import { useSettingsStore } from './settingsStore'
 
 describe('settingsStore', () => {
   beforeEach(() => {
-    useSettingsStore.getState().resetToDefaults()
+    useSettingsStore.getState().setTheme('system')
   })
 
-  it('clamps cell size to a minimum of 1 and ignores NaN input', () => {
-    useSettingsStore.getState().setCellSize(0, -5)
-    expect(useSettingsStore.getState().cellWidth).toBe(1)
-    expect(useSettingsStore.getState().cellHeight).toBe(1)
-
-    useSettingsStore.getState().setCellSize(12, 24)
-    useSettingsStore.getState().setCellSize(Number.NaN, Number.NaN)
-    expect(useSettingsStore.getState().cellWidth).toBe(12)
-    expect(useSettingsStore.getState().cellHeight).toBe(24)
+  it('defaults to system theme', () => {
+    expect(useSettingsStore.getState().theme).toBe('system')
   })
 
-  it('applies an optimizer preset atomically', () => {
-    useSettingsStore.getState().applyOptimizerPreset('best-ocr')
-    const state = useSettingsStore.getState()
-    expect(state.optimizerGoal).toBe('best-ocr')
-    expect(state.cellHeight).toBeGreaterThan(20)
-  })
+  it('cycles through theme values', () => {
+    useSettingsStore.getState().setTheme('dark')
+    expect(useSettingsStore.getState().theme).toBe('dark')
 
-  it('resets to defaults', () => {
-    useSettingsStore.getState().setCellSize(99, 99)
-    useSettingsStore.getState().resetToDefaults()
-    expect(useSettingsStore.getState().cellWidth).toBe(10)
-    expect(useSettingsStore.getState().cellHeight).toBe(20)
+    useSettingsStore.getState().setTheme('light')
+    expect(useSettingsStore.getState().theme).toBe('light')
   })
 })

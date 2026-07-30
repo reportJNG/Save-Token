@@ -2,8 +2,8 @@
 @import 'tw-animate-css';
 
 @theme {
-  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --font-sans: 'Inter Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, Consolas, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -30,50 +30,55 @@
   --radius-sm: calc(var(--radius) - 4px);
 }
 
+/*
+ * Palette: warm "ink on paper" in light mode, "amber phosphor terminal" in
+ * dark mode — both nod to what this app actually does (render text as a
+ * monospaced character grid) instead of a generic SaaS-purple accent.
+ */
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.15 0.01 285);
+  --background: oklch(0.985 0.004 80);
+  --foreground: oklch(0.2 0.015 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.01 285);
+  --card-foreground: oklch(0.2 0.015 60);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.01 285);
-  --primary: oklch(0.55 0.22 293);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.005 285);
-  --secondary-foreground: oklch(0.2 0.01 285);
-  --muted: oklch(0.96 0.005 285);
-  --muted-foreground: oklch(0.5 0.01 285);
-  --accent: oklch(0.94 0.03 293);
-  --accent-foreground: oklch(0.3 0.1 293);
-  --destructive: oklch(0.58 0.24 27);
+  --popover-foreground: oklch(0.2 0.015 60);
+  --primary: oklch(0.62 0.16 62);
+  --primary-foreground: oklch(0.17 0.02 60);
+  --secondary: oklch(0.95 0.008 70);
+  --secondary-foreground: oklch(0.24 0.015 60);
+  --muted: oklch(0.95 0.008 70);
+  --muted-foreground: oklch(0.5 0.015 65);
+  --accent: oklch(0.92 0.045 65);
+  --accent-foreground: oklch(0.32 0.08 55);
+  --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0.005 285);
-  --input: oklch(0.9 0.005 285);
-  --ring: oklch(0.55 0.22 293);
+  --border: oklch(0.89 0.012 70);
+  --input: oklch(0.89 0.012 70);
+  --ring: oklch(0.62 0.16 62);
 }
 
 .dark {
-  --background: oklch(0.14 0.01 285);
-  --foreground: oklch(0.96 0.005 285);
-  --card: oklch(0.18 0.01 285);
-  --card-foreground: oklch(0.96 0.005 285);
-  --popover: oklch(0.18 0.01 285);
-  --popover-foreground: oklch(0.96 0.005 285);
-  --primary: oklch(0.72 0.19 293);
-  --primary-foreground: oklch(0.14 0.01 285);
-  --secondary: oklch(0.24 0.01 285);
-  --secondary-foreground: oklch(0.96 0.005 285);
-  --muted: oklch(0.24 0.01 285);
-  --muted-foreground: oklch(0.65 0.01 285);
-  --accent: oklch(0.28 0.06 293);
-  --accent-foreground: oklch(0.9 0.05 293);
-  --destructive: oklch(0.65 0.22 27);
+  --background: oklch(0.16 0.012 55);
+  --foreground: oklch(0.93 0.02 70);
+  --card: oklch(0.2 0.014 55);
+  --card-foreground: oklch(0.93 0.02 70);
+  --popover: oklch(0.2 0.014 55);
+  --popover-foreground: oklch(0.93 0.02 70);
+  --primary: oklch(0.78 0.15 65);
+  --primary-foreground: oklch(0.16 0.02 55);
+  --secondary: oklch(0.26 0.014 55);
+  --secondary-foreground: oklch(0.93 0.02 70);
+  --muted: oklch(0.26 0.014 55);
+  --muted-foreground: oklch(0.68 0.02 65);
+  --accent: oklch(0.3 0.06 62);
+  --accent-foreground: oklch(0.9 0.06 68);
+  --destructive: oklch(0.68 0.2 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.3 0.01 285 / 40%);
-  --input: oklch(0.3 0.01 285 / 60%);
-  --ring: oklch(0.72 0.19 293);
+  --border: oklch(0.35 0.02 55 / 45%);
+  --input: oklch(0.35 0.02 55 / 65%);
+  --ring: oklch(0.78 0.15 65);
 }
 
 @layer base {
@@ -89,11 +94,11 @@
   .glass {
     @apply bg-card/70 backdrop-blur-xl border border-border/60;
   }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full;
+
+  /* A quiet nod to the character grid this app renders text onto. */
+  .grid-backdrop {
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse 55% 45% at 50% 0%, black, transparent 70%);
   }
 }

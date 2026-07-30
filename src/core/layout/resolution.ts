@@ -1,5 +1,5 @@
 import type { CharacterCellConfig } from './characterMetrics'
-import { validateCellConfig } from './characterMetrics'
+import { DEFAULT_CELL, validateCellConfig } from './characterMetrics'
 
 export type ResolutionMode = 'exact' | 'compact'
 
@@ -14,7 +14,6 @@ export interface ResolutionResult {
   unusedCells: number
   /** 0..1 fraction of the grid actually holding characters. */
   occupancy: number
-  pixelArea: number
 }
 
 function buildResult(characters: number, columns: number, rows: number, cell: CharacterCellConfig): ResolutionResult {
@@ -31,7 +30,6 @@ function buildResult(characters: number, columns: number, rows: number, cell: Ch
     capacity,
     unusedCells: capacity - characters,
     occupancy: capacity === 0 ? 0 : characters / capacity,
-    pixelArea: width * height,
   }
 }
 
@@ -42,7 +40,7 @@ function buildResult(characters: number, columns: number, rows: number, cell: Ch
  */
 export function exactResolution(
   characters: number,
-  cell: CharacterCellConfig = { width: 10, height: 20 },
+  cell: CharacterCellConfig = DEFAULT_CELL,
   targetAspect = 1,
 ): ResolutionResult {
   if (!Number.isSafeInteger(characters) || characters < 1) {
@@ -83,7 +81,7 @@ export function exactResolution(
  */
 export function compactResolution(
   characters: number,
-  cell: CharacterCellConfig = { width: 10, height: 20 },
+  cell: CharacterCellConfig = DEFAULT_CELL,
   targetAspect = 1,
   maxColumns = Number.POSITIVE_INFINITY,
 ): ResolutionResult {
@@ -124,15 +122,4 @@ export function compactResolution(
   }
 
   return best as ResolutionResult
-}
-
-export function computeResolution(
-  characters: number,
-  mode: ResolutionMode,
-  cell: CharacterCellConfig = { width: 10, height: 20 },
-  targetAspect = 1,
-): ResolutionResult {
-  return mode === 'exact'
-    ? exactResolution(characters, cell, targetAspect)
-    : compactResolution(characters, cell, targetAspect)
 }

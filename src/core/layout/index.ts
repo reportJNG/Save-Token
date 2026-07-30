@@ -1,5 +1,4 @@
 export * from './characterMetrics'
-export * from './category'
 export * from './resolution'
 export * from './grid'
 export * from './tokenEstimator'

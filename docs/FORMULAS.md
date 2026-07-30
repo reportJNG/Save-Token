@@ -38,6 +38,37 @@ pixel count. `rows = ceil(N / columns)`, so `columns × rows ≥ N` always
 — **no characters are ever dropped**, at the cost of a few unused cells
 in the final row.
 
+### A note on tied factor pairs
+
+Some character counts have two factor pairs whose aspect ratios are
+exact reciprocals of one another (e.g. 2,000 characters: 25×80 → 800×500
+and 40×50 → 500×800 are both `|log(aspect)| ≈ 0.47` from square). Both are
+equally optimal zero-waste layouts, and — because `ceil(w/32)·ceil(h/32)`
+is symmetric under swapping `w` and `h` — they cost the **same number of
+vision tokens** either way. `exactResolution`'s tie-break (first divisor
+found, ascending) picks a specific orientation deterministically; a
+golden-data test (`exactFitTable.golden.test.ts`, transcribed from an
+external reference table) checks this explicitly for the two character
+counts in its table where a tie occurs, asserting score-equivalence
+rather than a specific orientation.
+
+## Square estimate (`core/layout/squareResolution.ts`)
+
+A cheaper, non-grid-tracking estimate used for quick word-count
+comparisons: treat the required pixel area as a perfect square and round
+its side up to the nearest patch boundary.
+
+```
+area = N × cw × ch
+side = ceil(√area / patchSize) × patchSize
+```
+
+This is deliberately simpler than `exactResolution`/`compactResolution`
+— it doesn't produce an actual character grid, only a sizing estimate —
+and is what `computeWordComparison` (`core/layout/wordComparison.ts`)
+uses for its "equivalent square resolution" column, alongside the real
+pagination engine for its "recommended pages" column.
+
 ## Grid placement (`core/layout/grid.ts`)
 
 Character `i` (0-indexed) is placed at:
@@ -59,12 +90,24 @@ changes.
 2. If it fits within `maxPageWidth × maxPageHeight`, use one page.
 3. Otherwise, compute `pageCapacity = floor(maxPageWidth / cw) × floor(maxPageHeight / ch)`
    and split the text into `ceil(N / pageCapacity)` pages. Every page but
-   the last is a full `maxPageWidth × maxPageHeight` image; the last page
-   is laid out with the same resolution algorithm at its own (smaller)
-   remainder character count.
+   the last is a full, zero-waste `maxPageWidth × maxPageHeight` image
+   (`pageCapacity` characters exactly fill it by construction).
 
 No character is ever counted twice or dropped across a page boundary —
 enforced by a unit test that reassembles the offsets.
+
+### Why the last page always uses compact mode
+
+The default resolution mode is **"exact"** (zero unused cells) — see
+[the note above](#a-note-on-tied-factor-pairs) and `settingsStore`'s
+default. But the *last, partial* page's remainder count is whatever's
+left over, and exact factorization of an arbitrary (possibly prime)
+number can degenerate to a `1 × N` strip far wider or taller than the
+page-size cap this pagination step exists to enforce. So regardless of
+the configured mode, the last page always uses `compactResolution`
+bounded to `maxColumns` — staying within the page-size cap takes
+priority over zero waste on that one page. A regression test
+(`pagination.test.ts`) covers this with a deliberately prime remainder.
 
 ## Token estimation (`core/layout/tokenEstimator.ts`)
 

@@ -61,6 +61,12 @@ export function computePagination(characterCount: number, config: PaginationConf
     const remaining = Math.min(pageCapacity, characterCount - startChar)
     const isFullPage = remaining === pageCapacity
 
+    // Full pages are already zero-waste by construction (a complete
+    // maxColumns × maxRows grid). The last, partial page always uses the
+    // bounded compact search — not the configured mode — because "exact"
+    // factorization can't guarantee staying within the page-size cap for
+    // an arbitrary (e.g. prime) remainder count, and honoring the cap
+    // takes priority over zero waste on that one page.
     const geometry: ResolutionResult = isFullPage
       ? {
           characters: pageCapacity,
@@ -71,9 +77,8 @@ export function computePagination(characterCount: number, config: PaginationConf
           capacity: pageCapacity,
           unusedCells: 0,
           occupancy: 1,
-          pixelArea: config.maxPageWidth * config.maxPageHeight,
         }
-      : resolve(remaining, config, maxColumns)
+      : compactResolution(remaining, config.cell, config.targetAspect, maxColumns)
 
     pages.push({
       ...geometry,

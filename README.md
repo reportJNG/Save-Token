@@ -54,8 +54,8 @@ organized.
 ## Tech stack
 
 React 19 · TypeScript · Vite · Tailwind CSS v4 · Radix primitives (styled
-in the shadcn/ui convention) · React Hook Form + Zod · Zustand · Canvas
-API · a dedicated Web Worker for off-main-thread image export · Vitest.
+in the shadcn/ui convention) · Zustand · Canvas API · a dedicated Web
+Worker for off-main-thread image export · Vitest.
 
 ## Scripts
 

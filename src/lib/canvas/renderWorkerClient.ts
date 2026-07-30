@@ -48,10 +48,4 @@ export class RenderWorkerClient {
       worker.postMessage(request)
     })
   }
-
-  dispose(): void {
-    this.worker?.terminate()
-    this.worker = null
-    this.pending.clear()
-  }
 }

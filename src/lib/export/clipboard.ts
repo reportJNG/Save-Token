@@ -1,5 +1,12 @@
+function requireClipboard(): Clipboard {
+  if (!navigator.clipboard) {
+    throw new Error('Clipboard access is not available in this browser or context')
+  }
+  return navigator.clipboard
+}
+
 export async function copyTextToClipboard(text: string): Promise<void> {
-  await navigator.clipboard.writeText(text)
+  await requireClipboard().writeText(text)
 }
 
 export async function copyImageToClipboard(blob: Blob): Promise<void> {
@@ -7,5 +14,5 @@ export async function copyImageToClipboard(blob: Blob): Promise<void> {
   if (!ClipboardItemCtor) {
     throw new Error('Copying images is not supported in this browser')
   }
-  await navigator.clipboard.write([new ClipboardItemCtor({ [blob.type]: blob })])
+  await requireClipboard().write([new ClipboardItemCtor({ [blob.type]: blob })])
 }
